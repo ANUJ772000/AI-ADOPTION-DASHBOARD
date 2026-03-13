@@ -35,7 +35,8 @@ except ImportError:
     MLXTEND_OK = False
 
 # ── Google Drive large-file downloader ───────────────────────────────────────
-import urllib.request, os, io
+import os
+import gdown
 
 # ─────────────────────────────────────────────────────────────────────────────
 # ⚙️  CONFIGURATION — paste your Google Drive file ID here
@@ -52,24 +53,25 @@ COMPANY_CSV_LOCAL = "ai_company_adoption.csv"
 
 @st.cache_data(show_spinner=False)
 def download_company_csv():
-    """Download the large CSV from Google Drive if not already present locally."""
+    """Download the large CSV from Google Drive using gdown (handles large-file confirmation)."""
     if os.path.exists(COMPANY_CSV_LOCAL):
         return  # already downloaded in this session
 
-    if GDRIVE_FILE_ID == "https://drive.google.com/file/d/1PmhmJ6iqJOmDsWV5bmBVA_hPh-dev8et/view?usp=sharing":
+    if GDRIVE_FILE_ID == "YOUR_GOOGLE_DRIVE_FILE_ID_HERE":
         st.error(
             "⚠️ **Setup required:** Open `app.py`, find `GDRIVE_FILE_ID` near the top, "
             "and replace `YOUR_GOOGLE_DRIVE_FILE_ID_HERE` with your actual Google Drive file ID.\n\n"
             "**Steps:**\n"
             "1. Upload `ai_company_adoption.csv` to Google Drive\n"
             "2. Right-click → Share → *Anyone with the link* → Copy link\n"
-            "3. Extract the file ID from the link and paste it into `app.py`"
+            "3. Extract the file ID from the link (the long string between /d/ and /view)\n"
+            "4. Paste it into `app.py` on the GDRIVE_FILE_ID line, then push to GitHub"
         )
         st.stop()
 
-    url = f"https://drive.google.com/uc?export=download&id={GDRIVE_FILE_ID}&confirm=t"
     with st.spinner("📥 Downloading company dataset from Google Drive (one-time, ~38 MB)…"):
-        urllib.request.urlretrieve(url, COMPANY_CSV_LOCAL)
+        url = f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}"
+        gdown.download(url, COMPANY_CSV_LOCAL, quiet=False, fuzzy=True)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # PAGE CONFIG  (replaces .streamlit/config.toml — no folder needed)
