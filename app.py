@@ -342,7 +342,7 @@ with tabs[1]:
         coloraxis_colorbar=dict(title="Patents"),
         geo=dict(showframe=False, showcoastlines=True, projection_type="natural earth"),
     )
-    st.plotly_chart(fig_map, use_container_width=True)
+    st.plotly_chart(fig_map, width="stretch")
     insight("The USA, China, and Germany dominate AI patent filings, indicating mature AI R&D "
             "ecosystems. Organizations in these countries face higher competitive pressure to "
             "adopt AI internally rather than relying solely on consulting.")
@@ -358,7 +358,7 @@ with tabs[1]:
             color_discrete_sequence=px.colors.qualitative.Bold,
         )
         fig_res.update_layout(template="plotly_dark", height=400, showlegend=True)
-        st.plotly_chart(fig_res, use_container_width=True)
+        st.plotly_chart(fig_res, width="stretch")
         insight("Countries with high researcher density (USA, Canada, Germany) have stronger "
                 "internal AI talent pipelines, making in-house AI implementation more viable.")
 
@@ -373,7 +373,7 @@ with tabs[1]:
             color_discrete_sequence=px.colors.qualitative.Safe,
         )
         fig_gdp.update_layout(template="plotly_dark", height=400)
-        st.plotly_chart(fig_gdp, use_container_width=True)
+        st.plotly_chart(fig_gdp, width="stretch")
         insight("There is a strong positive correlation between GDP per capita and AI innovation "
                 "output. Wealthier economies invest more in AI infrastructure and talent, enabling "
                 "sustained internal AI adoption.")
@@ -390,7 +390,7 @@ with tabs[1]:
         )
         fig_dig.update_layout(template="plotly_dark", height=360,
                               xaxis_tickangle=-45)
-        st.plotly_chart(fig_dig, use_container_width=True)
+        st.plotly_chart(fig_dig, width="stretch")
 
     with c4:
         policy_counts = df_country["country_ai_policy"].value_counts().reset_index()
@@ -402,7 +402,7 @@ with tabs[1]:
             hole=0.4,
         )
         fig_pol.update_layout(template="plotly_dark", height=360)
-        st.plotly_chart(fig_pol, use_container_width=True)
+        st.plotly_chart(fig_pol, width="stretch")
 
     insight("Most countries hold a **Moderate** AI policy stance — neither fully accelerationist "
             "nor restrictive. This regulatory environment creates an opportunity for companies to "
@@ -421,7 +421,7 @@ with tabs[1]:
     )
     fig_inet.update_traces(textposition="top center", textfont_size=9)
     fig_inet.update_layout(template="plotly_dark", height=420)
-    st.plotly_chart(fig_inet, use_container_width=True)
+    st.plotly_chart(fig_inet, width="stretch")
     insight("Countries with high internet penetration consistently show higher digital maturity "
             "scores, confirming that digital infrastructure is the foundation of AI adoption. "
             "Companies operating in highly connected markets should prioritize internal AI "
@@ -448,7 +448,7 @@ with tabs[2]:
             labels={"avg_ai_adoption_rate": "Avg Adoption Rate (%)", "industry": ""},
         )
         fig_adp.update_layout(template="plotly_dark", height=380, coloraxis_showscale=False)
-        st.plotly_chart(fig_adp, use_container_width=True)
+        st.plotly_chart(fig_adp, width="stretch")
 
     with c2:
         fig_prod = px.bar(
@@ -460,7 +460,7 @@ with tabs[2]:
             labels={"avg_productivity_change_percent": "Avg Productivity Gain (%)", "industry": ""},
         )
         fig_prod.update_layout(template="plotly_dark", height=380, coloraxis_showscale=False)
-        st.plotly_chart(fig_prod, use_container_width=True)
+        st.plotly_chart(fig_prod, width="stretch")
 
     insight("**Technology** and **Finance** sectors lead in both AI adoption rate and productivity "
             "gains, suggesting that data-rich industries see the highest return on AI investment. "
@@ -496,7 +496,7 @@ with tabs[2]:
         polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
         title="Normalised Industry Performance — Radar",
     )
-    st.plotly_chart(fig_radar, use_container_width=True)
+    st.plotly_chart(fig_radar, width="stretch")
 
     # ── Jobs displaced vs created ─────────────────────────────────────────────
     c3, c4 = st.columns(2)
@@ -511,7 +511,7 @@ with tabs[2]:
             color_discrete_map={"avg_jobs_displaced": "#FC8181", "avg_jobs_created": "#68D391"},
         )
         fig_jobs.update_layout(template="plotly_dark", height=360, xaxis_tickangle=-30)
-        st.plotly_chart(fig_jobs, use_container_width=True)
+        st.plotly_chart(fig_jobs, width="stretch")
 
     with c4:
         fig_fail = px.bar(
@@ -524,7 +524,7 @@ with tabs[2]:
         )
         fig_fail.update_layout(template="plotly_dark", height=360,
                                xaxis_tickangle=-30, coloraxis_showscale=False)
-        st.plotly_chart(fig_fail, use_container_width=True)
+        st.plotly_chart(fig_fail, width="stretch")
 
     insight("AI projects create more jobs than they displace on average, challenging the common "
             "narrative that AI purely eliminates employment. Sectors such as **Agriculture** and "
@@ -542,7 +542,7 @@ with tabs[2]:
             "avg_jobs_created": "Jobs Created",
             "avg_customer_satisfaction": "CSAT",
         }).style.background_gradient(subset=["Adoption %", "Productivity %"], cmap="Blues"),
-        use_container_width=True, height=360,
+        width="stretch", height=360,
     )
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -569,7 +569,7 @@ with tabs[3]:
         r2.metric("Columns", f"{eda_df.shape[1]}")
         r3.metric("Numeric Columns", f"{eda_df.select_dtypes(include=np.number).shape[1]}")
         r4.metric("Categorical Columns", f"{eda_df.select_dtypes(include='object').shape[1]}")
-        st.dataframe(eda_df.head(50), use_container_width=True, height=260)
+        st.dataframe(eda_df.head(50), width="stretch", height=260)
 
     # ── Missing values ─────────────────────────────────────────────────────────
     with st.expander("🕳️ Missing Value Analysis"):
@@ -584,12 +584,12 @@ with tabs[3]:
                             title="Missing Values by Column",
                             color="Missing %", color_continuous_scale="Reds")
             fig_mv.update_layout(template="plotly_dark", height=300)
-            st.plotly_chart(fig_mv, use_container_width=True)
+            st.plotly_chart(fig_mv, width="stretch")
 
     # ── Statistical summary ────────────────────────────────────────────────────
     with st.expander("📊 Statistical Summary"):
         st.dataframe(eda_df[num_cols].describe().T.round(3).style.background_gradient(cmap="Blues"),
-                     use_container_width=True)
+                     width="stretch")
 
     # ── Correlation heatmap ───────────────────────────────────────────────────
     st.markdown("#### 🔥 Correlation Heatmap")
@@ -601,7 +601,7 @@ with tabs[3]:
     )
     fig_corr.update_layout(template="plotly_dark", height=520,
                            coloraxis_colorbar=dict(title="r"))
-    st.plotly_chart(fig_corr, use_container_width=True)
+    st.plotly_chart(fig_corr, width="stretch")
     insight("**AI investment per employee** shows the strongest positive correlation with "
             "productivity gains and cost reduction. Companies that invest heavily per employee "
             "consistently outperform those that spread AI budgets thinly — a clear signal that "
@@ -613,25 +613,25 @@ with tabs[3]:
         sample = eda_df.sample(min(3000, len(eda_df)), random_state=1)
         fig_s1 = px.scatter(
             sample, x="ai_investment_per_employee", y="productivity_change_percent",
-            color="industry", opacity=0.5, trendline="ols",
+            color="industry", opacity=0.5, trendline="lowess",
             title="AI Investment per Employee vs Productivity Gain",
             labels={"ai_investment_per_employee": "AI Investment / Employee (USD)",
                     "productivity_change_percent": "Productivity Gain (%)"},
         )
         fig_s1.update_layout(template="plotly_dark", height=380)
-        st.plotly_chart(fig_s1, use_container_width=True)
+        st.plotly_chart(fig_s1, width="stretch")
 
     with c2:
         auto_col = "task_automation_rate" if "task_automation_rate" in eda_df.columns else "ai_adoption_rate"
         fig_s2 = px.scatter(
             sample, x=auto_col, y="cost_reduction_percent",
-            color="company_size", opacity=0.5, trendline="ols",
+            color="company_size", opacity=0.5, trendline="lowess",
             title=f"{auto_col.replace('_', ' ').title()} vs Cost Reduction",
             labels={auto_col: auto_col.replace("_", " ").title(),
                     "cost_reduction_percent": "Cost Reduction (%)"},
         )
         fig_s2.update_layout(template="plotly_dark", height=380)
-        st.plotly_chart(fig_s2, use_container_width=True)
+        st.plotly_chart(fig_s2, width="stretch")
 
     insight("There is a clear positive relationship between **task automation rate** and cost "
             "reduction. Enterprise companies achieve disproportionately higher cost savings, "
@@ -648,7 +648,7 @@ with tabs[3]:
             barmode="overlay", opacity=0.7,
         )
         fig_hist.update_layout(template="plotly_dark", height=360)
-        st.plotly_chart(fig_hist, use_container_width=True)
+        st.plotly_chart(fig_hist, width="stretch")
 
     with c4:
         fig_box = px.box(
@@ -657,7 +657,7 @@ with tabs[3]:
             points=False,
         )
         fig_box.update_layout(template="plotly_dark", height=360)
-        st.plotly_chart(fig_box, use_container_width=True)
+        st.plotly_chart(fig_box, width="stretch")
 
     # ── Outlier detection ─────────────────────────────────────────────────────
     st.markdown("#### 🎯 Outlier Detection (IQR Method)")
@@ -672,7 +672,7 @@ with tabs[3]:
     fig_out.update_layout(template="plotly_dark", height=360)
     col_o1, col_o2 = st.columns([2, 1])
     with col_o1:
-        st.plotly_chart(fig_out, use_container_width=True)
+        st.plotly_chart(fig_out, width="stretch")
     with col_o2:
         st.metric("Outlier Records", f"{len(outliers):,}")
         st.metric("Outlier %", f"{len(outliers)/len(eda_df)*100:.1f}%")
@@ -685,13 +685,13 @@ with tabs[3]:
     if "reskilled_employees" in eda_df.columns:
         fig_train = px.scatter(
             sample, x="reskilled_employees", y="productivity_change_percent",
-            color="industry", opacity=0.5, trendline="ols",
+            color="industry", opacity=0.5, trendline="lowess",
             title="Reskilled Employees vs Productivity Gain (%)",
             labels={"reskilled_employees": "Reskilled Employees",
                     "productivity_change_percent": "Productivity Gain (%)"},
         )
         fig_train.update_layout(template="plotly_dark", height=400)
-        st.plotly_chart(fig_train, use_container_width=True)
+        st.plotly_chart(fig_train, width="stretch")
         insight("Companies that invest in **employee reskilling** see measurably higher productivity "
                 "gains. This suggests that AI adoption is most effective when paired with structured "
                 "workforce training programs — a factor often underestimated in consulting-led "
@@ -773,7 +773,7 @@ with tabs[4]:
             .background_gradient(subset=["Accuracy", "F1 Score"], cmap="Blues")
             .format({"Accuracy": "{:.4f}", "Precision": "{:.4f}",
                      "Recall": "{:.4f}", "F1 Score": "{:.4f}"}),
-        use_container_width=True, height=260,
+        width="stretch", height=260,
     )
     st.success(f"🏆 Best Model: **{best_model}** with F1 Score = "
                f"{results_df.iloc[0]['F1 Score']:.4f}")
@@ -786,7 +786,7 @@ with tabs[4]:
         color_discrete_sequence=["#4F8EF7", "#68D391", "#F6AD55", "#FC8181"],
     )
     fig_cmp.update_layout(template="plotly_dark", height=420)
-    st.plotly_chart(fig_cmp, use_container_width=True)
+    st.plotly_chart(fig_cmp, width="stretch")
 
     insight(f"**{best_model}** achieves the highest F1 Score, indicating the best balance between "
             "precision and recall across all four adoption stages. Ensemble methods (Random Forest, "
@@ -806,7 +806,7 @@ with tabs[4]:
         labels=dict(x="Predicted", y="Actual"),
     )
     fig_cm.update_layout(template="plotly_dark", height=420)
-    st.plotly_chart(fig_cm, use_container_width=True)
+    st.plotly_chart(fig_cm, width="stretch")
 
     # ── Feature importance (Random Forest) ───────────────────────────────────
     st.markdown("#### 🌟 Feature Importance (Random Forest)")
@@ -823,7 +823,7 @@ with tabs[4]:
                     title="Random Forest Feature Importance",
                     color="Importance", color_continuous_scale="Blues")
     fig_fi.update_layout(template="plotly_dark", height=400, coloraxis_showscale=False)
-    st.plotly_chart(fig_fi, use_container_width=True)
+    st.plotly_chart(fig_fi, width="stretch")
     insight("The most important features for predicting AI adoption stage are "
             "**AI investment per employee**, **task automation rate**, and **AI budget "
             "percentage**. Companies with high scores on these metrics are far more likely "
@@ -886,7 +886,7 @@ with tabs[5]:
         fig_elbow.add_vline(x=n_clust, line_dash="dash", line_color="#F6AD55",
                             annotation_text=f"K={n_clust} (selected)")
         fig_elbow.update_layout(template="plotly_dark", height=360)
-        st.plotly_chart(fig_elbow, use_container_width=True)
+        st.plotly_chart(fig_elbow, width="stretch")
         insight("The elbow typically forms around **K=4**, indicating four distinct company "
                 "archetypes in AI adoption behaviour.")
 
@@ -898,14 +898,14 @@ with tabs[5]:
             color_discrete_sequence=px.colors.qualitative.Bold,
         )
         fig_pca.update_layout(template="plotly_dark", height=420)
-        st.plotly_chart(fig_pca, use_container_width=True)
+        st.plotly_chart(fig_pca, width="stretch")
 
     # ── Cluster summary stats ─────────────────────────────────────────────────
     st.markdown("#### 📋 Cluster Summary Statistics")
     cluster_summary = cluster_result.groupby("Cluster")[cluster_features].mean().round(2)
     st.dataframe(
         cluster_summary.style.background_gradient(cmap="Blues"),
-        use_container_width=True,
+        width="stretch",
     )
 
     # ── Cluster profiles ───────────────────────────────────────────────────────
@@ -951,7 +951,7 @@ with tabs[5]:
         polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
         title="Cluster Profiles — Normalised Radar",
     )
-    st.plotly_chart(fig_cr, use_container_width=True)
+    st.plotly_chart(fig_cr, width="stretch")
 
 # ═════════════════════════════════════════════════════════════════════════════
 # TAB 6 – ASSOCIATION RULES
@@ -1014,7 +1014,7 @@ with tabs[6]:
                     display_rules.style
                         .background_gradient(subset=["lift","confidence"], cmap="Blues")
                         .format({"support":"{:.3f}","confidence":"{:.3f}","lift":"{:.2f}"}),
-                    use_container_width=True, height=420,
+                    width="stretch", height=420,
                 )
 
                 # ── Lift scatter ──────────────────────────────────────────────
@@ -1027,7 +1027,7 @@ with tabs[6]:
                     labels={"support":"Support","confidence":"Confidence"},
                 )
                 fig_ar.update_layout(template="plotly_dark", height=420)
-                st.plotly_chart(fig_ar, use_container_width=True)
+                st.plotly_chart(fig_ar, width="stretch")
 
                 # ── Top consequents bar ───────────────────────────────────────
                 top_cons = rules_df["consequents"].value_counts().head(10).reset_index()
@@ -1037,7 +1037,7 @@ with tabs[6]:
                                   color="Count", color_continuous_scale="Blues")
                 fig_cons.update_layout(template="plotly_dark", height=360,
                                        coloraxis_showscale=False)
-                st.plotly_chart(fig_cons, use_container_width=True)
+                st.plotly_chart(fig_cons, width="stretch")
 
                 insight("The most lifted rules reveal that **high AI investment + high automation "
                         "→ full AI adoption** and **low investment + low automation → none/pilot** "
@@ -1121,7 +1121,7 @@ with tabs[7]:
                 x=r["y_te"].values[idx], y=r["y_pred"][idx],
                 title=f"Actual vs Predicted — {label}",
                 labels={"x": "Actual", "y": "Predicted"},
-                opacity=0.5, trendline="ols",
+                opacity=0.5, trendline="lowess",
                 color_discrete_sequence=["#4F8EF7"],
             )
             lo = min(r["y_te"].min(), r["y_pred"].min())
@@ -1129,7 +1129,7 @@ with tabs[7]:
             fig_pred.add_shape(type="line", x0=lo, y0=lo, x1=hi, y1=hi,
                                line=dict(color="#FC8181", dash="dash"))
             fig_pred.update_layout(template="plotly_dark", height=380)
-            st.plotly_chart(fig_pred, use_container_width=True)
+            st.plotly_chart(fig_pred, width="stretch")
 
         with cc2:
             # Coefficients
@@ -1141,7 +1141,7 @@ with tabs[7]:
             )
             fig_coef.update_layout(template="plotly_dark", height=380,
                                    coloraxis_showscale=False)
-            st.plotly_chart(fig_coef, use_container_width=True)
+            st.plotly_chart(fig_coef, width="stretch")
 
         st.markdown("---")
 
@@ -1182,7 +1182,7 @@ with tabs[8]:
         adv_innov       = st.slider("Innovation Score (0–100)", 0, 100, 50, key="adv_innov")
 
         run_advisor = st.button("🔍 Get AI Strategy Recommendation", type="primary",
-                                use_container_width=True)
+                                width="stretch")
 
     with col_result:
         if run_advisor:
@@ -1308,7 +1308,7 @@ with tabs[8]:
                 template="plotly_dark", height=280,
                 margin=dict(t=40, b=10, l=30, r=30),
             )
-            st.plotly_chart(fig_gauge, use_container_width=True)
+            st.plotly_chart(fig_gauge, width="stretch")
 
             # Factor breakdown
             st.markdown("### 📋 Factor Analysis")
@@ -1338,7 +1338,7 @@ with tabs[8]:
                             "vs Peers": "Above ✅" if user_val >= peer_avg else "Below ⚠️",
                         })
                 if compare_rows:
-                    st.dataframe(pd.DataFrame(compare_rows), use_container_width=True)
+                    st.dataframe(pd.DataFrame(compare_rows), width="stretch")
         else:
             st.markdown("""
             <div style='text-align:center; padding:60px 40px; color:#A0AEC0;'>
@@ -1362,7 +1362,7 @@ with tabs[8]:
                 text_auto=".1f",
             )
             fig_bench.update_layout(template="plotly_dark", height=360)
-            st.plotly_chart(fig_bench, use_container_width=True)
+            st.plotly_chart(fig_bench, width="stretch")
 
 # ─────────────────────────────────────────────────────────────────────────────
 # FOOTER
