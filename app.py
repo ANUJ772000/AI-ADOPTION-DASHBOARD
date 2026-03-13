@@ -181,10 +181,8 @@ with st.sidebar:
                                key="sb_size")
 
     all_countries = sorted(df_company["country"].dropna().unique())
-    
-country_choice = st.selectbox("Country (searchable)", ["All Countries"] + all_countries,
-                              key="sb_country")
-
+    sel_countries = st.multiselect("Country", all_countries, default=all_countries,
+                                   key="sb_country")
 
     st.markdown("---")
     st.markdown("### 📊 Dataset Info")
@@ -198,7 +196,7 @@ country_choice = st.selectbox("Country (searchable)", ["All Countries"] + all_co
 mask = (
     df_company["industry"].isin(sel_industries) &
     df_company["company_size"].isin(sel_sizes) &
-    (True if country_choice=="All Countries" else df_company["country"]==country_choice)
+    df_company["country"].isin(sel_countries)
 )
 df_filtered = df_company[mask].copy()
 
@@ -221,7 +219,6 @@ def insight(text):
 # NAVIGATION TABS
 # ─────────────────────────────────────────────────────────────────────────────
 tab_labels = [
-    "📊 What-If Simulator",
     "🏠 Introduction",
     "🌍 Global Landscape",
     "🏭 Industry Analysis",
@@ -616,7 +613,7 @@ with tabs[3]:
         sample = eda_df.sample(min(3000, len(eda_df)), random_state=1)
         fig_s1 = px.scatter(
             sample, x="ai_investment_per_employee", y="productivity_change_percent",
-            color="industry", opacity=0.5, trendline="lowess",
+            color="industry", opacity=0.5,
             title="AI Investment per Employee vs Productivity Gain",
             labels={"ai_investment_per_employee": "AI Investment / Employee (USD)",
                     "productivity_change_percent": "Productivity Gain (%)"},
@@ -628,7 +625,7 @@ with tabs[3]:
         auto_col = "task_automation_rate" if "task_automation_rate" in eda_df.columns else "ai_adoption_rate"
         fig_s2 = px.scatter(
             sample, x=auto_col, y="cost_reduction_percent",
-            color="company_size", opacity=0.5, trendline="lowess",
+            color="company_size", opacity=0.5,
             title=f"{auto_col.replace('_', ' ').title()} vs Cost Reduction",
             labels={auto_col: auto_col.replace("_", " ").title(),
                     "cost_reduction_percent": "Cost Reduction (%)"},
@@ -688,7 +685,7 @@ with tabs[3]:
     if "reskilled_employees" in eda_df.columns:
         fig_train = px.scatter(
             sample, x="reskilled_employees", y="productivity_change_percent",
-            color="industry", opacity=0.5, trendline="lowess",
+            color="industry", opacity=0.5,
             title="Reskilled Employees vs Productivity Gain (%)",
             labels={"reskilled_employees": "Reskilled Employees",
                     "productivity_change_percent": "Productivity Gain (%)"},
@@ -1124,7 +1121,7 @@ with tabs[7]:
                 x=r["y_te"].values[idx], y=r["y_pred"][idx],
                 title=f"Actual vs Predicted — {label}",
                 labels={"x": "Actual", "y": "Predicted"},
-                opacity=0.5, trendline="lowess",
+                opacity=0.5,
                 color_discrete_sequence=["#4F8EF7"],
             )
             lo = min(r["y_te"].min(), r["y_pred"].min())
@@ -1155,42 +1152,10 @@ with tabs[7]:
             "budget allocation translates to measurable productivity gains, providing a "
             "quantitative business case for internal AI investment over consulting fees.")
 
-
-# ═════════════════════════════════════════════════════════════════════════════
-# TAB – WHAT IF SIMULATOR
-# ═════════════════════════════════════════════════════════════════════════════
-with tabs[8]:
-    st.markdown("<div class='section-header'><h2>📊 What‑If AI Investment Simulator</h2></div>", unsafe_allow_html=True)
-    st.markdown("Adjust the sliders to simulate how changes in AI investment and automation affect predicted productivity and cost outcomes.")
-    st.markdown("---")
-
-    invest = st.slider("AI Investment per Employee (USD)", 0, 200000, 30000, 5000)
-    automation = st.slider("Task Automation Rate (%)", 0, 100, 25)
-    training = st.slider("AI Training Hours", 0, 200, 20)
-    budget = st.slider("AI Budget %", 0.0, 30.0, 5.0, 0.5)
-
-    # simple predictive approximation based on observed relationships
-    predicted_productivity = 0.0003*invest + 0.25*automation + 0.15*training + 1.8*budget
-    predicted_cost = 0.0002*invest + 0.30*automation + 0.1*training + 1.2*budget
-
-    c1,c2 = st.columns(2)
-    c1.metric("Predicted Productivity Gain %", round(predicted_productivity,2))
-    c2.metric("Predicted Cost Reduction %", round(predicted_cost,2))
-
-    fig_sim = px.scatter(
-        x=[invest], y=[predicted_productivity],
-        size=[automation],
-        title="Investment vs Predicted Productivity",
-        template="plotly_dark"
-    )
-    st.plotly_chart(fig_sim, width="stretch")
-
-    insight("Increasing AI investment and automation simultaneously produces the strongest productivity improvements, reinforcing the strategy of sustained AI capability building rather than one‑off consulting engagements.")
-
 # ═════════════════════════════════════════════════════════════════════════════
 # TAB 8 – AI STRATEGY ADVISOR
 # ═════════════════════════════════════════════════════════════════════════════
-with tabs[9]:
+with tabs[8]:
     st.markdown("<div class='section-header'><h2>🎯 AI Strategy Advisor</h2></div>",
                 unsafe_allow_html=True)
     st.markdown("Enter your company's profile below to receive a **data-driven recommendation** "
@@ -1220,37 +1185,162 @@ with tabs[9]:
                                 width="stretch")
 
     with col_result:
-        
         if run_advisor:
-            # Train a Random Forest using same features as classification section
-            X_tr, X_te, y_tr, y_te, le_tmp, feats = prepare_classification_data()
-            model = RandomForestClassifier(n_estimators=120, random_state=42)
-            model.fit(X_tr, y_tr)
+            # ── Score calculation ────────────────────────────────────────────
+            score = 0
+            feedback = []
 
-            user_features = np.array([[
-                adv_invest, adv_auto, adv_training, adv_budget_pct,
-                adv_reskill, adv_tools, adv_projects, adv_innov
-            ]])
+            # Investment readiness
+            if adv_invest >= 50_000:
+                score += 30
+                feedback.append(("✅", "Strong AI investment per employee (≥ $50K)", "green"))
+            elif adv_invest >= 20_000:
+                score += 15
+                feedback.append(("⚠️", "Moderate AI investment — consider increasing budget", "orange"))
+            else:
+                score += 0
+                feedback.append(("❌", "Low AI investment — consulting may be needed to upskill", "red"))
 
-            # adjust size to match model feature length
-            user_features = np.pad(user_features, ((0,0),(0,max(0,len(feats)-user_features.shape[1]))))
-            scaler = StandardScaler()
-            scaler.fit(X_tr)
-            user_scaled = scaler.transform(user_features[:,:len(feats)])
+            # Automation readiness
+            if adv_auto >= 40:
+                score += 20
+                feedback.append(("✅", "High task automation rate — strong internal capability", "green"))
+            elif adv_auto >= 20:
+                score += 10
+                feedback.append(("⚠️", "Moderate automation — room to grow with AI tooling", "orange"))
+            else:
+                feedback.append(("❌", "Low automation — significant AI implementation work needed", "red"))
 
-            pred = model.predict(user_scaled)[0]
-            stage = le_tmp.inverse_transform([pred])[0]
+            # Budget commitment
+            if adv_budget_pct >= 10:
+                score += 20
+                feedback.append(("✅", "AI budget is well-funded (≥ 10% of IT budget)", "green"))
+            elif adv_budget_pct >= 5:
+                score += 10
+                feedback.append(("⚠️", "AI budget is modest — scale up to accelerate adoption", "orange"))
+            else:
+                feedback.append(("❌", "Very low AI budget allocation — strategic re-prioritisation needed", "red"))
 
-            if stage in ["full"]:
+            # Training
+            if adv_training >= 40:
+                score += 15
+                feedback.append(("✅", "Robust employee AI training programme", "green"))
+            elif adv_training >= 15:
+                score += 7
+                feedback.append(("⚠️", "Some AI training in place — expand for better outcomes", "orange"))
+            else:
+                feedback.append(("❌", "Minimal training — workforce upskilling is a priority", "red"))
+
+            # Tools & projects
+            if adv_tools >= 5 and adv_projects >= 5:
+                score += 15
+                feedback.append(("✅", "Active AI portfolio (tools + projects) indicates strong culture", "green"))
+            elif adv_tools >= 2 or adv_projects >= 2:
+                score += 7
+                feedback.append(("⚠️", "Emerging AI portfolio — scale AI use-cases", "orange"))
+            else:
+                feedback.append(("❌", "Limited AI tooling — begin with pilot projects", "red"))
+
+            # ── Recommendation ───────────────────────────────────────────────
+            if score >= 75:
                 rec = "🚀 Implement AI Internally"
-            elif stage in ["partial","pilot"]:
-                rec = "🤝 Hybrid AI + Consulting"
+                rec_color = "#276749"
+                rec_bg    = "#C6F6D5"
+                rec_detail = (
+                    "Your company demonstrates strong AI readiness across investment, automation, "
+                    "budget commitment, and workforce training. The data suggests you have the "
+                    "internal capability to lead your own AI implementation without heavy reliance "
+                    "on external consultants. Focus on scaling existing AI projects, deepening "
+                    "automation, and continuing workforce development."
+                )
+            elif score >= 45:
+                rec = "🤝 Hybrid Approach (AI + Consulting)"
+                rec_color = "#7B5E00"
+                rec_bg    = "#FEFCBF"
+                rec_detail = (
+                    "Your company shows moderate AI readiness with clear strengths in some areas "
+                    "and gaps in others. A hybrid strategy — using consultants to fill specific "
+                    "skill gaps while building internal AI capability in parallel — will deliver "
+                    "the best outcomes. Prioritise increasing AI investment per employee and "
+                    "expanding your workforce training programme."
+                )
             else:
                 rec = "🏢 Hire External Consultants"
+                rec_color = "#742A2A"
+                rec_bg    = "#FED7D7"
+                rec_detail = (
+                    "Your current AI maturity indicators suggest that internal implementation "
+                    "would face significant challenges. External consulting expertise can help "
+                    "you build a foundation: defining an AI strategy, selecting appropriate "
+                    "tools, and upskilling your workforce. Plan a 12–18 month consulting "
+                    "engagement focused on capability building so you can transition to internal "
+                    "AI ownership over time."
+                )
 
-            st.success(f"Recommended Strategy: **{rec}**")
-            st.markdown(f"Predicted AI Adoption Stage: **{stage}**")
+            # ── Display ──────────────────────────────────────────────────────
+            st.markdown("### 🏆 Strategy Recommendation")
+            st.markdown(f"""
+            <div style='background:{rec_bg}; border-radius:12px; padding:20px 24px; margin:10px 0;'>
+              <h2 style='color:{rec_color}; margin:0;'>{rec}</h2>
+              <hr style='border-color:{rec_color}; opacity:0.3;'/>
+              <p style='color:#2D3748; font-size:0.95rem; line-height:1.7;'>{rec_detail}</p>
+            </div>""", unsafe_allow_html=True)
 
+            # Score gauge
+            fig_gauge = go.Figure(go.Indicator(
+                mode="gauge+number",
+                value=score,
+                title={"text": "AI Readiness Score", "font": {"size": 18}},
+                gauge={
+                    "axis": {"range": [0, 100]},
+                    "bar": {"color": "#4F8EF7"},
+                    "steps": [
+                        {"range": [0, 45],  "color": "#FC8181"},
+                        {"range": [45, 75], "color": "#F6AD55"},
+                        {"range": [75, 100],"color": "#68D391"},
+                    ],
+                    "threshold": {"line": {"color": "white", "width": 3},
+                                  "thickness": 0.75, "value": score},
+                },
+                number={"suffix": " / 100", "font": {"size": 28}},
+            ))
+            fig_gauge.update_layout(
+                template="plotly_dark", height=280,
+                margin=dict(t=40, b=10, l=30, r=30),
+            )
+            st.plotly_chart(fig_gauge, width="stretch")
+
+            # Factor breakdown
+            st.markdown("### 📋 Factor Analysis")
+            for icon, text, colour in feedback:
+                badge_class = f"badge-{'green' if colour=='green' else 'orange' if colour=='orange' else 'orange'}"
+                st.markdown(f"{icon} &nbsp; {text}", unsafe_allow_html=True)
+
+            # Peer benchmarks
+            st.markdown("### 📊 How You Compare to Similar Companies")
+            peer_mask = (df_company["industry"] == adv_industry) & \
+                        (df_company["company_size"] == adv_size)
+            peers = df_company[peer_mask]
+            if len(peers) > 10:
+                metrics_compare = {
+                    "AI Investment / Employee": ("ai_investment_per_employee", adv_invest),
+                    "Task Automation Rate %": ("task_automation_rate", adv_auto),
+                    "AI Budget %": ("ai_budget_percentage", adv_budget_pct),
+                }
+                compare_rows = []
+                for label, (col, user_val) in metrics_compare.items():
+                    if col in peers.columns:
+                        peer_avg = peers[col].mean()
+                        compare_rows.append({
+                            "Metric": label,
+                            "Your Value": user_val,
+                            "Industry Peer Avg": round(peer_avg, 2),
+                            "vs Peers": "Above ✅" if user_val >= peer_avg else "Below ⚠️",
+                        })
+                if compare_rows:
+                    st.dataframe(pd.DataFrame(compare_rows), width="stretch")
+        else:
+            st.markdown("""
             <div style='text-align:center; padding:60px 40px; color:#A0AEC0;'>
               <h3>👈 Fill in your company profile on the left</h3>
               <p>Adjust the sliders to match your organisation's AI characteristics,
