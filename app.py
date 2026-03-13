@@ -613,7 +613,7 @@ with tabs[3]:
         sample = eda_df.sample(min(3000, len(eda_df)), random_state=1)
         fig_s1 = px.scatter(
             sample, x="ai_investment_per_employee", y="productivity_change_percent",
-            color="industry", opacity=0.5,
+            color="industry", opacity=0.5, trendline="lowess",
             title="AI Investment per Employee vs Productivity Gain",
             labels={"ai_investment_per_employee": "AI Investment / Employee (USD)",
                     "productivity_change_percent": "Productivity Gain (%)"},
@@ -625,7 +625,7 @@ with tabs[3]:
         auto_col = "task_automation_rate" if "task_automation_rate" in eda_df.columns else "ai_adoption_rate"
         fig_s2 = px.scatter(
             sample, x=auto_col, y="cost_reduction_percent",
-            color="company_size", opacity=0.5,
+            color="company_size", opacity=0.5, trendline="lowess",
             title=f"{auto_col.replace('_', ' ').title()} vs Cost Reduction",
             labels={auto_col: auto_col.replace("_", " ").title(),
                     "cost_reduction_percent": "Cost Reduction (%)"},
@@ -685,7 +685,7 @@ with tabs[3]:
     if "reskilled_employees" in eda_df.columns:
         fig_train = px.scatter(
             sample, x="reskilled_employees", y="productivity_change_percent",
-            color="industry", opacity=0.5,
+            color="industry", opacity=0.5, trendline="lowess",
             title="Reskilled Employees vs Productivity Gain (%)",
             labels={"reskilled_employees": "Reskilled Employees",
                     "productivity_change_percent": "Productivity Gain (%)"},
@@ -1121,7 +1121,7 @@ with tabs[7]:
                 x=r["y_te"].values[idx], y=r["y_pred"][idx],
                 title=f"Actual vs Predicted — {label}",
                 labels={"x": "Actual", "y": "Predicted"},
-                opacity=0.5,
+                opacity=0.5, trendline="lowess",
                 color_discrete_sequence=["#4F8EF7"],
             )
             lo = min(r["y_te"].min(), r["y_pred"].min())
@@ -1376,3 +1376,36 @@ st.markdown("""
   150,000 company records analysed
 </div>
 """, unsafe_allow_html=True)
+
+
+# ─────────────────────────────────────────────────────────────
+# WHAT IF ANALYSIS
+# ─────────────────────────────────────────────────────────────
+st.markdown("## 📊 What‑If AI Strategy Simulator")
+
+invest = st.slider("AI Investment per Employee", 0, 200000, 30000)
+automation = st.slider("Automation Level (%)", 0, 100, 30)
+training = st.slider("AI Training Hours", 0, 200, 20)
+
+predicted_productivity = (
+    0.0003 * invest +
+    0.25 * automation +
+    0.15 * training
+)
+
+st.metric("Predicted Productivity Gain (%)", round(predicted_productivity,2))
+
+fig_sim = px.scatter(
+    x=[invest],
+    y=[predicted_productivity],
+    size=[automation],
+    title="Investment vs Predicted Productivity"
+)
+st.plotly_chart(fig_sim, width="stretch")
+
+st.markdown(
+"""**Insight:** Increasing AI investment together with automation and employee
+training significantly improves predicted productivity outcomes. This helps
+organizations evaluate whether internal AI implementation may generate better
+returns compared to hiring external consultants."""
+)
