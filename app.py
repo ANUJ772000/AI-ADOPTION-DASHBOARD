@@ -1376,36 +1376,3 @@ st.markdown("""
   150,000 company records analysed
 </div>
 """, unsafe_allow_html=True)
-
-
-# ─────────────────────────────────────────────────────────────
-# WHAT IF ANALYSIS
-# ─────────────────────────────────────────────────────────────
-st.markdown("## 📊 What‑If AI Strategy Simulator")
-
-invest = st.slider("AI Investment per Employee", 0, 200000, 30000)
-automation = st.slider("Automation Level (%)", 0, 100, 30)
-training = st.slider("AI Training Hours", 0, 200, 20)
-
-predicted_productivity = (
-    0.0003 * invest +
-    0.25 * automation +
-    0.15 * training
-)
-
-st.metric("Predicted Productivity Gain (%)", round(predicted_productivity,2))
-
-fig_sim = px.scatter(
-    x=[invest],
-    y=[predicted_productivity],
-    size=[automation],
-    title="Investment vs Predicted Productivity"
-)
-st.plotly_chart(fig_sim, width="stretch")
-
-st.markdown(
-"""**Insight:** Increasing AI investment together with automation and employee
-training significantly improves predicted productivity outcomes. This helps
-organizations evaluate whether internal AI implementation may generate better
-returns compared to hiring external consultants."""
-)
