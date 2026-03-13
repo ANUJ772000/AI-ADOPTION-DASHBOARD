@@ -1056,102 +1056,96 @@ with tabs[6]:
 with tabs[7]:
     st.markdown("<div class='section-header'><h2>📈 Regression Analysis</h2></div>",
                 unsafe_allow_html=True)
-    st.markdown("Quantify how AI adoption inputs **predict productivity gains and cost reduction** "
-                "using linear and multiple regression models.")
+    st.markdown("Predict productivity gains and cost reduction using **Linear, Ridge, and Lasso Regression**.")
     st.markdown("---")
+
+    from sklearn.linear_model import LinearRegression, Ridge, Lasso
 
     @st.cache_data(show_spinner=False)
     def run_regression(seed=42):
-        df_r = pd.read_csv("ai_company_adoption.csv").sample(15_000, random_state=seed)
 
-        feat_prod = ["ai_investment_per_employee", "task_automation_rate",
-                     "ai_training_hours", "ai_budget_percentage",
-                     "reskilled_employees", "num_ai_tools_used",
-                     "ai_projects_active", "innovation_score"]
-        feat_prod = [f for f in feat_prod if f in df_r.columns]
+        df_r = pd.read_csv("ai_company_adoption.csv").sample(15000, random_state=seed)
 
-        feat_cost = ["ai_investment_per_employee", "task_automation_rate",
-                     "ai_budget_percentage", "reskilled_employees",
-                     "num_ai_tools_used", "ai_projects_active"]
-        feat_cost = [f for f in feat_cost if f in df_r.columns]
+        features = [
+            "ai_investment_per_employee",
+            "task_automation_rate",
+            "ai_training_hours",
+            "ai_budget_percentage",
+            "reskilled_employees",
+            "num_ai_tools_used",
+            "ai_projects_active",
+            "innovation_score"
+        ]
 
-        target_prod = "productivity_change_percent"
-        target_cost = "cost_reduction_percent"
+        features = [f for f in features if f in df_r.columns]
 
-        results = {}
-        for target, feats in [(target_prod, feat_prod), (target_cost, feat_cost)]:
-            sub = df_r[feats + [target]].dropna()
-            X = sub[feats]
-            y = sub[target]
-            scaler = StandardScaler()
-            X_s = scaler.fit_transform(X)
-            X_tr, X_te, y_tr, y_te = train_test_split(X_s, y, test_size=0.2, random_state=seed)
-            model = LinearRegression()
+        target = "productivity_change_percent"
+
+        df_r = df_r[features + [target]].dropna()
+
+        X = df_r[features]
+        y = df_r[target]
+
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        X_tr, X_te, y_tr, y_te = train_test_split(
+            X_scaled, y, test_size=0.2, random_state=seed
+        )
+
+        models = {
+            "Linear Regression": LinearRegression(),
+            "Ridge Regression": Ridge(alpha=1.0),
+            "Lasso Regression": Lasso(alpha=0.1)
+        }
+
+        results = []
+
+        for name, model in models.items():
+
             model.fit(X_tr, y_tr)
             y_pred = model.predict(X_te)
-            results[target] = {
-                "model": model, "feats": feats, "scaler": scaler,
-                "X_te": X_te, "y_te": y_te, "y_pred": y_pred,
-                "r2":   round(r2_score(y_te, y_pred), 4),
-                "rmse": round(np.sqrt(mean_squared_error(y_te, y_pred)), 4),
-                "coefs": pd.DataFrame({"Feature": feats,
-                                        "Coefficient": model.coef_}).sort_values("Coefficient"),
-            }
-        return results
 
-    with st.spinner("Fitting regression models…"):
-        reg_results = run_regression()
+            r2 = r2_score(y_te, y_pred)
+            rmse = np.sqrt(mean_squared_error(y_te, y_pred))
 
-    for target_name, label in [
-        ("productivity_change_percent", "Productivity Gain (%)"),
-        ("cost_reduction_percent", "Cost Reduction (%)"),
-    ]:
-        r = reg_results[target_name]
-        st.markdown(f"#### 🎯 Predicting **{label}**")
-        col_m1, col_m2 = st.columns(2)
-        with col_m1:
-            st.metric("R² Score", f"{r['r2']:.4f}")
-        with col_m2:
-            st.metric("RMSE", f"{r['rmse']:.4f}")
+            results.append({
+                "Model": name,
+                "R2 Score": round(r2,4),
+                "RMSE": round(rmse,4)
+            })
 
-        cc1, cc2 = st.columns(2)
-        with cc1:
-            # Predicted vs Actual
-            idx = np.random.choice(len(r["y_te"]), min(500, len(r["y_te"])), replace=False)
-            fig_pred = px.scatter(
-                x=r["y_te"].values[idx], y=r["y_pred"][idx],
-                title=f"Actual vs Predicted — {label}",
-                labels={"x": "Actual", "y": "Predicted"},
-                opacity=0.5,
-                color_discrete_sequence=["#4F8EF7"],
-            )
-            lo = min(r["y_te"].min(), r["y_pred"].min())
-            hi = max(r["y_te"].max(), r["y_pred"].max())
-            fig_pred.add_shape(type="line", x0=lo, y0=lo, x1=hi, y1=hi,
-                               line=dict(color="#FC8181", dash="dash"))
-            fig_pred.update_layout(template="plotly_dark", height=380)
-            st.plotly_chart(fig_pred, width="stretch")
+        return pd.DataFrame(results)
 
-        with cc2:
-            # Coefficients
-            fig_coef = px.bar(
-                r["coefs"], x="Coefficient", y="Feature", orientation="h",
-                title=f"Regression Coefficients — {label}",
-                color="Coefficient",
-                color_continuous_scale="RdBu", color_continuous_midpoint=0,
-            )
-            fig_coef.update_layout(template="plotly_dark", height=380,
-                                   coloraxis_showscale=False)
-            st.plotly_chart(fig_coef, width="stretch")
+    with st.spinner("Running regression models..."):
+        results_df = run_regression()
 
-        st.markdown("---")
+    st.markdown("### 📊 Regression Model Comparison")
 
-    insight("The regression models explain a moderate proportion of variance in productivity "
-            "and cost outcomes (R² ≈ 0.3–0.5). The strongest positive predictors are "
-            "**AI budget percentage**, **task automation rate**, and **AI investment per employee**. "
-            "The regression coefficients confirm that each additional percentage point of AI "
-            "budget allocation translates to measurable productivity gains, providing a "
-            "quantitative business case for internal AI investment over consulting fees.")
+    st.dataframe(
+        results_df.style.background_gradient(subset=["R2 Score"], cmap="Blues"),
+        width="stretch"
+    )
+
+    fig = px.bar(
+        results_df,
+        x="Model",
+        y="R2 Score",
+        color="Model",
+        title="Regression Model Performance Comparison"
+    )
+
+    fig.update_layout(template="plotly_dark")
+
+    st.plotly_chart(fig, width="stretch")
+
+    insight(
+        "Linear Regression provides a baseline model. "
+        "Ridge Regression applies **L2 regularization** to stabilize coefficients "
+        "when predictors are correlated. Lasso Regression applies **L1 regularization**, "
+        "which can shrink some coefficients to zero and perform automatic feature selection. "
+        "Comparing these models helps identify the most influential drivers of AI productivity gains."
+    )
 
 # ═════════════════════════════════════════════════════════════════════════════
 # TAB 8 – AI STRATEGY ADVISOR
