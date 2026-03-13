@@ -47,7 +47,7 @@ import gdown
 #          https://drive.google.com/file/d/FILE_ID_HERE/view?usp=sharing
 #       4. Copy only the FILE_ID_HERE part and paste it below
 # ─────────────────────────────────────────────────────────────────────────────
-GDRIVE_FILE_ID = "YOUR_GOOGLE_DRIVE_FILE_ID_HERE"   # ← replace this
+GDRIVE_FILE_ID = "1PmhmJ6iqJOmDsWV5bmBVA_hPh-dev8et"
 
 COMPANY_CSV_LOCAL = "ai_company_adoption.csv"
 
@@ -56,18 +56,6 @@ def download_company_csv():
     """Download the large CSV from Google Drive using gdown (handles large-file confirmation)."""
     if os.path.exists(COMPANY_CSV_LOCAL):
         return  # already downloaded in this session
-
-    if GDRIVE_FILE_ID == "YOUR_GOOGLE_DRIVE_FILE_ID_HERE":
-        st.error(
-            "⚠️ **Setup required:** Open `app.py`, find `GDRIVE_FILE_ID` near the top, "
-            "and replace `YOUR_GOOGLE_DRIVE_FILE_ID_HERE` with your actual Google Drive file ID.\n\n"
-            "**Steps:**\n"
-            "1. Upload `ai_company_adoption.csv` to Google Drive\n"
-            "2. Right-click → Share → *Anyone with the link* → Copy link\n"
-            "3. Extract the file ID from the link (the long string between /d/ and /view)\n"
-            "4. Paste it into `app.py` on the GDRIVE_FILE_ID line, then push to GitHub"
-        )
-        st.stop()
 
     with st.spinner("📥 Downloading company dataset from Google Drive (one-time, ~38 MB)…"):
         url = f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}"
